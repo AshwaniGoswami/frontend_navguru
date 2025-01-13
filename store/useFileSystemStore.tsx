@@ -27,6 +27,11 @@ interface FileSystemStore {
   updateFileContent: (id: string, content: string) => Promise<void>;
 }
 
+// Create axios instance with base URL
+const api = axios.create({
+  baseURL: `https://navguru-prework-backend.onrender.com/`,
+});
+
 const useFileSystemStore = create<FileSystemStore>((set) => ({
   fileSystem: [],
   loading: false,
@@ -35,9 +40,7 @@ const useFileSystemStore = create<FileSystemStore>((set) => ({
   fetchFileSystem: async () => {
     try {
       set({ loading: true, error: null });
-      const response = await axios.get<FileSystemItem[]>(
-        `process.env.NEXT_PUBLIC_BACKEND_URL/file-system`
-      );
+      const response = await api.get<FileSystemItem[]>("/file-system");
       set({ fileSystem: response.data, loading: false });
     } catch (err) {
       set({ error: "Failed to fetch file system", loading: false });
@@ -47,8 +50,8 @@ const useFileSystemStore = create<FileSystemStore>((set) => ({
   fetchChildren: async (folderId: string) => {
     try {
       set({ loading: true, error: null });
-      const response = await axios.get<FileSystemItem[]>(
-        `process.env.NEXT_PUBLIC_BACKEND_URL/file-system/${folderId}/children`
+      const response = await api.get<FileSystemItem[]>(
+        `/file-system/${folderId}/children`
       );
       set((state) => ({
         fileSystem: updateChildrenInFileSystem(
@@ -70,14 +73,11 @@ const useFileSystemStore = create<FileSystemStore>((set) => ({
   ) => {
     try {
       set({ loading: true, error: null });
-      const response = await axios.post<FileSystemItem>(
-        "process.env.NEXT_PUBLIC_BACKEND_URL/file-system/file",
-        {
-          name,
-          parentId,
-          content,
-        }
-      );
+      const response = await api.post<FileSystemItem>("/file-system/file", {
+        name,
+        parentId,
+        content,
+      });
       set((state) => ({
         fileSystem: addItemToFileSystem(
           state.fileSystem,
@@ -94,13 +94,10 @@ const useFileSystemStore = create<FileSystemStore>((set) => ({
   createFolder: async (name: string, parentId: string | null) => {
     try {
       set({ loading: true, error: null });
-      const response = await axios.post<FileSystemItem>(
-        "process.env.NEXT_PUBLIC_BACKEND_URL/file-system/folder",
-        {
-          name,
-          parentId,
-        }
-      );
+      const response = await api.post<FileSystemItem>("/file-system/folder", {
+        name,
+        parentId,
+      });
       set((state) => ({
         fileSystem: addItemToFileSystem(
           state.fileSystem,
@@ -117,8 +114,8 @@ const useFileSystemStore = create<FileSystemStore>((set) => ({
   updateItem: async (id: string, updates: Partial<FileSystemItem>) => {
     try {
       set({ loading: true, error: null });
-      const response = await axios.put<FileSystemItem>(
-        `process.env.NEXT_PUBLIC_BACKEND_URL/file-system/${id}`,
+      const response = await api.put<FileSystemItem>(
+        `/file-system/${id}`,
         updates
       );
       set((state) => ({
@@ -133,9 +130,7 @@ const useFileSystemStore = create<FileSystemStore>((set) => ({
   deleteItem: async (id: string) => {
     try {
       set({ loading: true, error: null });
-      await axios.delete(
-        `process.env.NEXT_PUBLIC_BACKEND_URL/file-system/${id}`
-      );
+      await api.delete(`/file-system/${id}`);
       set((state) => ({
         fileSystem: removeItemFromFileSystem(state.fileSystem, id),
         loading: false,
@@ -148,8 +143,8 @@ const useFileSystemStore = create<FileSystemStore>((set) => ({
   updateFileContent: async (id: string, content: string) => {
     try {
       set({ loading: true, error: null });
-      const response = await axios.put<FileSystemItem>(
-        `process.env.NEXT_PUBLIC_BACKEND_URL/file-system/file/${id}/content`,
+      const response = await api.put<FileSystemItem>(
+        `/file-system/file/${id}/content`,
         {
           content,
         }
