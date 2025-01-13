@@ -9,6 +9,7 @@ import {
   Plus,
   Pencil,
   Trash,
+  Loader2,
 } from "lucide-react";
 import useFileSystemStore, { FileSystemItem } from "@/store/useFileSystemStore";
 import { Button } from "@/components/ui/button";
@@ -25,8 +26,14 @@ export default function FileItem({ item, level = 0 }: FileItemProps) {
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
-  const { fetchChildren, updateItem, deleteItem, createFile, createFolder } =
-    useFileSystemStore();
+  const {
+    fetchChildren,
+    updateItem,
+    deleteItem,
+    createFile,
+    createFolder,
+    loading,
+  } = useFileSystemStore();
 
   const handleToggle = async () => {
     if (!isExpanded && item.type === "folder") {
@@ -40,16 +47,19 @@ export default function FileItem({ item, level = 0 }: FileItemProps) {
     if (newName && newName !== item.name) {
       updateItem(item._id, { name: newName });
     }
+    setIsContextMenuOpen(false);
   };
 
   const handleDelete = () => {
     if (confirm("Are you sure you want to delete this item?")) {
       deleteItem(item._id);
     }
+    setIsContextMenuOpen(false);
   };
 
   const handleOpenFile = () => {
     setIsFileOpen(true);
+    setIsContextMenuOpen(false);
   };
 
   const handleCreateFile = () => {
@@ -86,7 +96,7 @@ export default function FileItem({ item, level = 0 }: FileItemProps) {
     };
   }, []);
 
-  const indentation = level * 16; // 16px per level
+  const indentation = level * 16;
 
   return (
     <div className="relative">
@@ -100,8 +110,11 @@ export default function FileItem({ item, level = 0 }: FileItemProps) {
             size="icon"
             onClick={handleToggle}
             className="h-8 w-8 p-0 mr-1"
+            disabled={loading}
           >
-            {isExpanded ? (
+            {loading && isExpanded ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : isExpanded ? (
               <ChevronDown className="h-4 w-4" />
             ) : (
               <ChevronRight className="h-4 w-4" />
@@ -113,7 +126,12 @@ export default function FileItem({ item, level = 0 }: FileItemProps) {
         ) : (
           <File className="h-5 w-5 text-gray-500 mr-2 flex-shrink-0" />
         )}
-        <span className="flex-grow truncate">{item.name}</span>
+        <span className="flex-grow truncate">
+          {item.name}
+          {loading && (
+            <span className="ml-2 text-sm text-gray-400">(loading...)</span>
+          )}
+        </span>
         <div className="flex-shrink-0 flex gap-1">
           <Button
             variant="ghost"
@@ -121,6 +139,7 @@ export default function FileItem({ item, level = 0 }: FileItemProps) {
             onClick={() => setIsContextMenuOpen(!isContextMenuOpen)}
             ref={moreButtonRef}
             className="h-8 w-8 p-0"
+            disabled={loading}
           >
             <MoreVertical className="h-4 w-4" />
           </Button>
@@ -144,16 +163,26 @@ export default function FileItem({ item, level = 0 }: FileItemProps) {
                   variant="ghost"
                   onClick={handleCreateFile}
                   className="w-full justify-start px-4 py-2 text-sm"
+                  disabled={loading}
                 >
-                  <Plus className="mr-2 h-4 w-4" />
+                  {loading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="mr-2 h-4 w-4" />
+                  )}
                   New File
                 </Button>
                 <Button
                   variant="ghost"
                   onClick={handleCreateFolder}
                   className="w-full justify-start px-4 py-2 text-sm"
+                  disabled={loading}
                 >
-                  <Plus className="mr-2 h-4 w-4" />
+                  {loading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="mr-2 h-4 w-4" />
+                  )}
                   New Folder
                 </Button>
               </>
@@ -162,16 +191,26 @@ export default function FileItem({ item, level = 0 }: FileItemProps) {
               variant="ghost"
               onClick={handleRename}
               className="w-full justify-start px-4 py-2 text-sm"
+              disabled={loading}
             >
-              <Pencil className="mr-2 h-4 w-4" />
+              {loading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Pencil className="mr-2 h-4 w-4" />
+              )}
               Rename
             </Button>
             <Button
               variant="ghost"
               onClick={handleDelete}
               className="w-full justify-start px-4 py-2 text-sm text-red-600 hover:text-red-700"
+              disabled={loading}
             >
-              <Trash className="mr-2 h-4 w-4" />
+              {loading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Trash className="mr-2 h-4 w-4" />
+              )}
               Delete
             </Button>
             {item.type === "file" && (
@@ -179,8 +218,13 @@ export default function FileItem({ item, level = 0 }: FileItemProps) {
                 variant="ghost"
                 onClick={handleOpenFile}
                 className="w-full justify-start px-4 py-2 text-sm"
+                disabled={loading}
               >
-                <File className="mr-2 h-4 w-4" />
+                {loading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <File className="mr-2 h-4 w-4" />
+                )}
                 Open
               </Button>
             )}
